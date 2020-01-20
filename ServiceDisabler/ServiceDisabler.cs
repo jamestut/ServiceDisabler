@@ -14,6 +14,7 @@ namespace ServiceDisabler
     public partial class ServiceDisabler : ServiceBase
     {
         private string[] ServiceNames { get; set; }
+        private string[] ServiceDisableNames { get; set; }
         private int CheckFrequency { get; set; }
 
         private Timer _MonitorTimer;
@@ -25,7 +26,7 @@ namespace ServiceDisabler
 
         protected override void OnStart(string[] args)
         {
-            //Debugger.Launch();
+            // Debugger.Launch();
             // open registry settings
             try
             {
@@ -37,6 +38,11 @@ namespace ServiceDisabler
                 }
                 var svcNames = (string)regKey.GetValue("ServiceNames");
                 ServiceNames = svcNames.Split(';');
+                var svcDisableNames = (string)regKey.GetValue("ServiceDisableNames", string.Empty);
+                if (svcDisableNames != string.Empty)
+                    ServiceDisableNames = svcDisableNames.Split(';');
+                else
+                    ServiceDisableNames = new string[0];
                 CheckFrequency = (int)regKey.GetValue("CheckFrequency", 5);
             }
             catch(System.Security.SecurityException ex)
@@ -80,6 +86,7 @@ namespace ServiceDisabler
 
         private void _MonitorTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            // stop services
             foreach(var svcName in ServiceNames)
             {
                 var svcObj = new ServiceController(svcName);
@@ -93,6 +100,20 @@ namespace ServiceDisabler
                         default:
                             svcObj.Stop();
                             break;
+                    }
+                }
+                catch (Exception ex) { continue; }
+            }
+            // disable services
+            foreach(var svcName in ServiceDisableNames)
+            {
+                var svcObj = new ServiceController(svcName);
+
+                try
+                {
+                    if(svcObj.StartType != ServiceStartMode.Disabled)
+                    {
+                        Process.Start("sc.exe", $"config {svcName} start= disabled");
                     }
                 }
                 catch (Exception ex) { continue; }
