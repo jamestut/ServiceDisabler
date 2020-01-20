@@ -1,8 +1,10 @@
 # ServiceDisabler
 
-This simple Windows service will periodically monitor and stop other services in local system. List of services can be configured, and so does the interval. This service will not disable or change the startup type of the specified services.
+This simple Windows service will periodically monitor and stop other services in local system. List of services can be configured, and so does the interval.
 
-This service requires .NET framework 4.0.
+Update: Now support configuring services to disable. See **Configuration** part for more details.
+
+This service requires .NET framework 4.6.1.
 
 ## Installation
 
@@ -31,6 +33,9 @@ The registry entries are as follows:
 - `ServiceNames` (Required)  
 Type: `REG_SZ`  
 List of services to be monitored and autostopped. Separate each service name with semicolon (`;`). Do not begin or end with semicolon, and do not put any space inside the string.
+- `ServiceDisableNames` (Required)  
+Type: `REG_SZ`  
+List of services to be monitored for their startup status. Services specified here will be automatically disabled for every scan interval. This configuration is independent from `ServiceNames`. Separate each service name with semicolon (`;`). Do not begin or end with semicolon, and do not put any space inside the string.
 - `CheckFrequency` (Optional)  
 Type: `REG_DWORD`  
 Specify the frequency of monitoring, in seconds. If not specified, default to 5 seconds.
